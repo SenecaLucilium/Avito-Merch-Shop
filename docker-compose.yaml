@@ -24,6 +24,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  e2e-tests:
+    build: .
+    entrypoint: [""]
+    command: sh -c "sleep 15 && python tests/e2e_tests.py"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/shop
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      api:
+        condition: service_started
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:13
