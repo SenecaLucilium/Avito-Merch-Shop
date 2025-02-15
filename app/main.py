@@ -16,10 +16,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(auth.router, prefix="/auth")
-app.include_router(transfer.router, prefix="/wallet")
-app.include_router(merch.router, prefix="/merch")
-app.include_router(history.router, prefix="/history")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(transfer.router, prefix="/api")
+app.include_router(merch.router, prefix="/api")
+app.include_router(history.router, prefix="/api")
 
 @app.get("/health")
 async def health_check():

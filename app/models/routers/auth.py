@@ -1,13 +1,21 @@
 import jwt
 import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app import get_db
 from app.models.user import User
 from app.config import settings
+from pydantic import BaseModel
 
 router = APIRouter()
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+class AuthResponse(BaseModel):
+    token: str
 
 def create_access_token(username: str):
     expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -15,13 +23,20 @@ def create_access_token(username: str):
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     return token
 
-@router.post("/login")
-def login(username: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username).first()
+@router.post("/", response_model=AuthResponse)
+def login(auth: AuthRequest, db: Session = Depends(get_db)):
+    if not auth.username or not auth.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Имя пользователя и пароль не могут быть пустыми"
+        )
+    
+    user = db.query(User).filter(User.username == auth.username).first()
     if not user:
-        user = User(username=username, coins=settings.INITIAL_COINS)
+        user = User(username=auth.username, coins=settings.INITIAL_COINS)
         db.add(user)
         db.commit()
         db.refresh(user)
-    access_token = create_access_token(username=user.username)
-    return {"username": user.username, "coins": user.coins, "access_token": access_token}
+    
+    access_token = create_access_token(user.username)
+    return {"token": access_token}
