@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app import get_db
 from app.models.user import User
 from app.models.merch_purchase import MerchPurchase
+from app.models.coins_transaction import CoinsTransaction
 
 router = APIRouter()
 
@@ -34,8 +35,12 @@ def purchase_merch(username: str, item: str, db: Session = Depends(get_db)):
          raise HTTPException(status_code=400, detail="Недостаточно монет для покупки")
     
     user.coins -= price
-    purchase = MerchPurchase(user_id=user.id, item=item, price=price, purchased_at=datetime.datetime.utcnow())
+    purchase = MerchPurchase(user_id=user.id, item=item, price=price, purchased_at=datetime.datetime.now(datetime.timezone.utc))
     db.add(purchase)
+    
+    transaction = CoinsTransaction(sender_id=user.id, recipient_id=None, amount=price, transaction_type="purchase")
+    db.add(transaction)
+
     db.commit()
     db.refresh(purchase)
     
@@ -44,5 +49,5 @@ def purchase_merch(username: str, item: str, db: Session = Depends(get_db)):
         "purchased_item": item,
         "price": price,
         "remaining_coins": user.coins,
-        "purchased_at": purchase.purchased_at,
+        "purchased_at": purchase.purchased_at
     }

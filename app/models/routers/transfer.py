@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app import get_db
 from app.models.user import User
+from app.models.coins_transaction import CoinsTransaction
 
 router = APIRouter()
 
@@ -23,6 +24,10 @@ def transfer_coins(sender: str, recipient: str, amount: int, db: Session = Depen
     
     sender_user.coins -= amount
     recipient_user.coins += amount
+
+    transaction = CoinsTransaction(sender_id=sender_user.id, recipient_id=recipient_user.id, amount=amount, transaction_type="transfer")
+    db.add(transaction)
+
     db.commit()
     
     return {
