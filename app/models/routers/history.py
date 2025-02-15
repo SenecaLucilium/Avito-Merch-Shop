@@ -9,9 +9,11 @@ from app.models.coins_transaction import CoinsTransaction
 from app.config import settings
 
 router = APIRouter()
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 def get_current_user(token: HTTPAuthorizationCredentials = Depends(security)):
+    if token is None:
+        raise HTTPException(status_code=401, detail="Нет токена доступа")
     try:
         payload = jwt.decode(token.credentials, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         username = payload.get("sub")

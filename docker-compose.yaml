@@ -13,6 +13,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  tests:
+    build: .
+    entrypoint: [""]
+    command: sh -c "python -m app.init_db && pytest --maxfail=1 --disable-warnings -v -s"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/shop
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:13
