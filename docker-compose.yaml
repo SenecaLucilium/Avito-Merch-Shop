@@ -36,6 +36,21 @@ services:
       db:
         condition: service_healthy
 
+  load-tests:
+    build: .
+    entrypoint: [""]
+    command: locust -f tests/load_tests.py --host http://api:8080
+    ports:
+      - "8089:8089"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/shop
+      - JWT_SECRET=avito-test-key
+    depends_on:
+      api:
+        condition: service_started
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:13
     environment:
