@@ -1,4 +1,3 @@
-import pytest
 import uuid
 from fastapi.testclient import TestClient
 from app.main import app
@@ -20,8 +19,10 @@ def auth_headers(token: str):
 
 def test_auth_creates_user_and_gets_token():
     username = random_username("user")
+
     response = client.post("/api/auth/", json={"username": username, "password": "pass1"})
     assert response.status_code == 200
+
     data = response.json()
     assert "token" in data
 
@@ -32,12 +33,14 @@ def test_buy_merch():
     
     response = client.get("/api/buy/pink-hoody", headers=headers)
     assert response.status_code == 200
+
     data = response.json()
     assert data["purchased_item"] == "pink-hoody"
     assert data["remaining_coins"] == 500
 
     response = client.get("/api/buy/pen", headers=headers)
     assert response.status_code == 200
+
     data = response.json()
     assert data["purchased_item"] == "pen"
     assert data["remaining_coins"] == 490
@@ -51,6 +54,7 @@ def test_send_coin():
 
     response = client.post("/api/sendCoin", json={"toUser": recipient_username, "amount": 200}, headers=headers_sender)
     assert response.status_code == 200
+
     data = response.json()
     assert data["sender_balance"] == 800
     assert data["recipient_balance"] == 1200
@@ -65,12 +69,14 @@ def test_get_info():
     
     response = client.get("/api/info", headers=headers)
     assert response.status_code == 200
+
     data = response.json()
     assert "coins" in data
     assert isinstance(data["coins"], int)
     assert "inventory" in data
     assert isinstance(data["inventory"], list)
     assert "coinHistory" in data
+
     history = data["coinHistory"]
     assert "received" in history
     assert "sent" in history
@@ -82,8 +88,10 @@ def test_buy_merch_insufficient_funds():
 
     response = client.get("/api/buy/pink-hoody", headers=headers)
     assert response.status_code == 200
+
     response = client.get("/api/buy/pink-hoody", headers=headers)
     assert response.status_code == 200
+
     response = client.get("/api/buy/pen", headers=headers)
     assert response.status_code == 400
 

@@ -5,7 +5,7 @@ from app.models.routers import auth, transfer, merch, history
 
 app = FastAPI(
     title = settings.PROJECT_NAME,
-    version=settings.VERSION
+    version = settings.VERSION
 )
 
 app.add_middleware(
